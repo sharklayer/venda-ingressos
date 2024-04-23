@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Evento {
+  id           String         @id @default(uuid())
+  nome         String
+  data         DateTime
+  local        String
+  descricao    String
+  ingressos    Ingresso[]
+  LoteIngresso LoteIngresso[]
+  Venda        Venda[]
+
+  @@map("eventos")
+}
+
+model CategoriaIngresso {
+  id        String     @id @default(uuid())
+  descricao String
+  Ingresso  Ingresso[]
+
+  @@map("categoria_ingressos")
+}
+
+model LoteIngresso {
+  id        String     @id @default(uuid())
+  descricao String
+  evento    Evento     @relation(fields: [evento_id], references: [id])
+  evento_id String
+  Ingresso  Ingresso[]
+
+  @@map("lote_ingressos")
+}
+
+model Ingresso {
+  id                    String            @id @default(uuid())
+  quantidade            Int
+  preco                 Float
+  evento                Evento            @relation(fields: [evento_id], references: [id])
+  categoriaIngresso     CategoriaIngresso @relation(fields: [categoria_ingresso_id], references: [id])
+  loteIngresso          LoteIngresso      @relation(fields: [lote_ingresso_id], references: [id])
+  evento_id             String
+  categoria_ingresso_id String
+  lote_ingresso_id      String
+
+  @@map("ingressos")
+}
+
+model Usuario {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  nome      String
+  sobrenome String
+  senha     String
+  admin     Boolean   @default(false)
+  Cliente   Cliente[]
+
+  @@map("usuarios")
+}
+
+model Cliente {
+  id         String  @id @default(uuid())
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+  usuario_id String
+  telefone   String
+
+  @@map("clientes")
+}
+
+model Venda {
+  id         String   @id @default(uuid())
+  quantidade String
+  total      Float
+  data       DateTime @default(now())
+  evento     Evento   @relation(fields: [evento_id], references: [id])
+  evento_id  String
+
+  @@map("vendas")
+}
